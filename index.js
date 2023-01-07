@@ -2,7 +2,7 @@ const express = require("express")
 const app = express()
 
 const cors = require("cors")
-const { getPost, addPost } = require("./post.js");
+const { getPost, addPost, addLike, deletePost } = require("./post.js");
 require("dotenv").config({ path: "./.env" });
 
 app.use(express.json());
@@ -18,15 +18,16 @@ app.get("/", (req, res) => {
 app.get("/posts", async (req, res) => {
   try {
     const posts = await getPost();
+    console.log({ posts })
     const newPosts = posts.map((p) => ({
       id: p.id,
       titulo: p.titulo,
       img: p.url,
       descripcion: p.description,
+      likes: p.likes
     }));
     res.json(newPosts);
   } catch (error) {
-    console.log(error)
     res.status(500).json({ message: " el post no esta disponible " });
   }
 });
@@ -34,8 +35,6 @@ app.get("/posts", async (req, res) => {
 app.post("/posts", async (req, res) => {
   try {
     const { titulo, url, descripcion, likes } = req.body;
-    console.log(req.body);
-
     await addPost(titulo, url, descripcion, likes);
 
     res.send("Post agregado exitosamente");
@@ -43,3 +42,26 @@ app.post("/posts", async (req, res) => {
     res.status(500).json({ message: "no esta disponible " });
   }
 });
+
+app.put("/posts/like/:id", async (req, res) => {
+  try {
+    const { id } = req.params
+    await addLike(id)
+    res.send("like agregado con éxito")
+  }
+  catch (error) {
+    console.log(error)
+    res.status(500).json({ message: "Like no esta disponible " })
+  }
+})
+
+app.delete("/posts/:id", async (req, res) => {
+  const { id } = req.params
+  try {
+    await deletePost(id)
+    res.send("Post eliminado con éxito")
+  }
+  catch (error) {
+    res.status(500).json({ message: "Like no esta disponible " })
+  }
+})
